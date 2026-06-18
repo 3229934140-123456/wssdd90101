@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>口碑复盘工具 — 市场研究助手</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-card: #2a2e3b;
+  --bg-hover: #323746;
+  --border: #3a3f50;
+  --border-light: #4a4f60;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0b0;
+  --text-muted: #6b7185;
+  --accent: #5b8def;
+  --accent-hover: #4a7de0;
+  --accent-bg: rgba(91,141,239,0.12);
+  --green: #4caf7d;
+  --green-bg: rgba(76,175,125,0.12);
+  --red: #e05555;
+  --red-bg: rgba(224,85,85,0.12);
+  --orange: #e0a030;
+  --orange-bg: rgba(224,160,48,0.12);
+  --purple: #9c6ade;
+  --purple-bg: rgba(156,106,222,0.12);
+  --cyan: #4ec9b0;
+  --cyan-bg: rgba(78,201,176,0.12);
+  --radius: 8px;
+  --radius-sm: 5px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --transition: 0.2s ease;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.app-logo svg { width: 22px; height: 22px; }
+.header-actions { display: flex; gap: 8px; }
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 3px;
+}
+.tab-btn {
+  padding: 7px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.tab-btn.active { background: var(--accent); color: #fff; }
+.btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-danger { background: var(--red-bg); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-icon {
+  width: 32px; height: 32px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary);
+  transition: var(--transition);
+}
+.btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+.app-body { display: flex; flex: 1; overflow: hidden; }
+.sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.project-list { flex: 1; overflow-y: auto; padding: 8px; }
+.project-item {
+  padding: 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+.project-item:hover { background: var(--bg-tertiary); }
+.project-item.active { background: var(--accent-bg); border-color: var(--accent); }
+.project-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.project-item-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 12px;
+}
+.project-item-meta span { display: flex; align-items: center; gap: 3px; }
+.main-content { flex: 1; overflow-y: auto; padding: 24px; }
+.view { display: none; }
+.view.active { display: block; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  gap: 12px;
+}
+.empty-state svg { width: 48px; height: 48px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 800px;
+}
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.form-input, .form-textarea, .form-select {
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: var(--transition);
+  outline: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+.tag-input-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 42px;
+  align-items: center;
+  cursor: text;
+}
+.tag-input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--red-bg);
+  color: var(--red);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-chip .tag-remove {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+}
+.tag-chip .tag-remove:hover { opacity: 1; }
+.tag-input-wrap input {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+  font-family: inherit;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title svg { width: 20px; height: 20px; color: var(--accent); }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); }
+.badge-accent { background: var(--accent-bg); color: var(--accent); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-cyan { background: var(--cyan-bg); color: var(--cyan); }
+.opinion-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  min-height: 400px;
+}
+.theme-column {
+  min-width: 280px;
+  max-width: 320px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 260px);
+}
+.theme-column-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.theme-column-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.theme-column-count { font-size: 12px; color: var(--text-muted); }
+.theme-column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  min-height: 60px;
+}
+.theme-column-body.drag-over { background: var(--accent-bg); }
+.opinion-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: grab;
+  transition: var(--transition);
+}
+.opinion-card:hover { border-color: var(--border-light); }
+.opinion-card.dragging { opacity: 0.5; }
+.opinion-card-content {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.opinion-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.opinion-card-footer span { display: flex; align-items: center; gap: 3px; }
+.opinion-card-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.opinion-card-actions button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 13px;
+  transition: var(--transition);
+}
+.opinion-card-actions button:hover { color: var(--text-primary); }
+.add-theme-col {
+  min-width: 280px;
+  max-width: 280px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-muted);
+  font-size: 14px;
+  gap: 8px;
+}
+.add-theme-col:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.compare-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.compare-panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compare-panel-body {
+  padding: 16px;
+  max-height: calc(100vh - 380px);
+  overflow-y: auto;
+}
+.compare-item {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  border: 1px solid transparent;
+}
+.compare-item.matched { background: var(--green-bg); border-color: rgba(76,175,125,0.2); }
+.compare-item.unexpected { background: var(--red-bg); border-color: rgba(224,85,85,0.2); }
+.compare-item.missed { background: var(--orange-bg); border-color: rgba(224,160,48,0.2); }
+.compare-item.neutral { background: var(--bg-tertiary); }
+.compare-item-icon { font-size: 16px; flex-shrink: 0; }
+.compare-item-text { flex: 1; }
+.compare-item-meta { font-size: 11px; color: var(--text-muted); white-space:nowrap; }
+.insight-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.insight-stat {
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.insight-stat-value { font-size: 24px; font-weight: 700; }
+.insight-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text-primary); }
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.selling-point-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+.selling-point-item .sp-text { flex: 1; font-size: 13px; }
+.selling-point-item .sp-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+.selling-point-item .sp-remove:hover { color: var(--red); }
+.brief-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  color: #1a1a2e;
+  border-radius: var(--radius);
+  padding: 40px;
+  font-family: "Microsoft YaHei", -apple-system, sans-serif;
+}
+.brief-container h1 {
+  font-size: 22px;
+  border-bottom: 3px solid #5b8def;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.brief-container h2 {
+  font-size: 16px;
+  margin: 20px 0 10px;
+  padding: 6px 10px;
+  background: #f0f4ff;
+  border-left: 3px solid #5b8def;
+}
+.brief-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 16px;
+  font-size: 13px;
+}
+.brief-container th, .brief-container td {
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  text-align: left;
+}
+.brief-container th { background: #f5f5f5; font-weight: 600; }
+.brief-stat-row {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.brief-stat-box {
+  padding: 10px 16px;
+  background: #f5f7ff;
+  border-radius: 6px;
+  text-align: center;
+}
+.brief-stat-box .val { font-size: 22px; font-weight: 700; color: #5b8def; }
+.brief-stat-box .lbl { font-size: 11px; color: #888; }
+.brief-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.brief-tag.green { background: #e8f5e9; color: #2e7d32; }
+.brief-tag.red { background: #ffebee; color: #c62828; }
+.brief-tag.orange { background: #fff3e0; color: #e65100; }
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  animation: toastIn 0.3s ease;
+}
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--red); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.project-info-bar {
+  display: flex;
+  gap: 24px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.project-info-bar .info-item { display: flex; align-items: center; gap: 6px; }
+.project-info-bar .info-label { color: var(--text-muted); }
+.project-info-bar .info-value { font-weight: 500; }
+.unassigned-area {
+  min-height: 80px;
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+.unassigned-area.drag-over { border-color: var(--accent); background: var(--accent-bg); }
+.unassigned-area .opinion-card { display: inline-flex; flex-direction: column; }
+.scrollbar::-webkit-scrollbar { width: 6px; }
+.scrollbar::-webkit-scrollbar-track { background: transparent; }
+.scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.scrollbar::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+.sentiment-positive { color: var(--green); }
+.sentiment-negative { color: var(--red); }
+.sentiment-neutral { color: var(--text-muted); }
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.toolbar .spacer { flex: 1; }
+.match-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.match-legend span { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.legend-dot.green { background: var(--green); }
+.legend-dot.red { background: var(--red); }
+.legend-dot.orange { background: var(--orange); }
+@media print {
+  .app-header, .sidebar, .toolbar, .modal-overlay, .tab-bar, .header-actions { display: none !important; }
+  .app-body { display: block !important; }
+  .main-content { padding: 0 !important; }
+  .brief-container { box-shadow: none !important; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="app-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    口碑复盘工具
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="archive" onclick="switchTab('archive')">项目档案</button>
+    <button class="tab-btn" data-tab="opinions" onclick="switchTab('opinions')">观点摘录</button>
+    <button class="tab-btn" data-tab="compare" onclick="switchTab('compare')">对比复盘</button>
+    <button class="tab-btn" data-tab="brief" onclick="switchTab('brief')">生成简报</button>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-primary" onclick="openNewProjectModal()">+ 新建项目</button>
+  </div>
+</header>
+<div class="app-body">
+  <aside class="sidebar">
+    <div class="sidebar-header"><h3>观察项目</h3></div>
+    <div class="project-list scrollbar" id="projectList"></div>
+  </aside>
+  <main class="main-content scrollbar">
+    <div class="view active" id="view-archive">
+      <div id="archiveContent">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <p>点击「+ 新建项目」创建第一个观察项目</p>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="view-opinions">
+      <div id="opinionsContent">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <p>请先选择一个项目</p>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="view-compare">
+      <div id="compareContent">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          <p>请先选择一个项目并录入观点数据</p>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="view-brief">
+      <div id="briefContent">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          <p>请先完成观点摘录和对比复盘</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContainer"></div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+var STORAGE_KEY = 'reputation_review_tool';
+var THEME_COLORS = ['#5b8def','#4caf7d','#e05555','#e0a030','#9c6ade','#4ec9b0','#e06090','#70a0e0'];
+var SENTIMENT_MAP = { positive: '正面', negative: '负面', neutral: '中性' };
+var state = { projects: [], activeProjectId: null, activeTab: 'archive' };
+var tempExcludeWords = [];
+var dragData = null;
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 6); }
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch(e) {}
+}
+
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function getProject(id) { return state.projects.find(function(p){ return p.id === id; }); }
+function getActiveProject() { return getProject(state.activeProjectId); }
+
+function showToast(msg, type) {
+  type = type || 'success';
+  var c = document.getElementById('toastContainer');
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(function(){ if(el.parentNode) el.remove(); }, 2500);
+}
+
+function openModal(html) {
+  document.getElementById('modalContainer').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.id === 'view-' + tab); });
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  renderProjectList();
+  var p = getActiveProject();
+  if (state.activeTab === 'archive') renderArchive(p);
+  else if (state.activeTab === 'opinions') renderOpinions(p);
+  else if (state.activeTab === 'compare') renderCompare(p);
+  else if (state.activeTab === 'brief') renderBrief(p);
+}
+
+function renderProjectList() {
+  var list = document.getElementById('projectList');
+  if (state.projects.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无项目</div>';
+    return;
+  }
+  list.innerHTML = state.projects.map(function(p){
+    return '<div class="project-item '+(p.id===state.activeProjectId?'active':'')+'" onclick="selectProject(\''+p.id+'\')">' +
+      '<div class="project-item-name"><span style="color:var(--accent)">●</span>'+esc(p.name)+'</div>' +
+      '<div class="project-item-meta"><span>📅 '+(p.launchDate||'—')+'</span><span>💬 '+(p.themes||[]).reduce(function(s,t){return s+(t.opinions||[]).length;},0)+'</span></div></div>';
+  }).join('');
+}
+
+function selectProject(id) { state.activeProjectId = id; saveState(); renderCurrentView(); }
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function openNewProjectModal() {
+  tempExcludeWords = [];
+  openModal(
+    '<div class="modal-header"><div class="modal-title">新建观察项目</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-grid">'+
+    '<div class="form-group"><label>产品名称</label><input class="form-input" id="f_name" placeholder="如：幻境传说2.0"></div>'+
+    '<div class="form-group"><label>上线日期</label><input class="form-input" id="f_date" type="date"></div>'+
+    '<div class="form-group full"><label>目标人群</label><input class="form-input" id="f_audience" placeholder="如：20-35岁二次元玩家"></div>'+
+    '<div class="form-group full"><label>排除无关词（回车添加）</label><div class="tag-input-wrap" id="excludeTagWrap" onclick="document.getElementById(\'f_exclude\').focus()"><input id="f_exclude" placeholder="输入后按回车" onkeydown="handleExcludeTag(event)"></div></div>'+
+    '<div class="form-group full"><label>预期卖点（每行一个）</label><textarea class="form-textarea" id="f_selling" placeholder="如：\n全新开放世界地图\n实时PVP竞技\n剧情分支选择" rows="4"></textarea></div>'+
+    '</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="createProject()">创建项目</button></div>'
+  );
+}
+
+function handleExcludeTag(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    var input = e.target;
+    var word = input.value.trim();
+    if (word && tempExcludeWords.indexOf(word) === -1) {
+      tempExcludeWords.push(word);
+      renderExcludeTags();
+    }
+    input.value = '';
+  }
+}
+
+function renderExcludeTags() {
+  var wrap = document.getElementById('excludeTagWrap');
+  var input = document.getElementById('f_exclude');
+  wrap.querySelectorAll('.tag-chip').forEach(function(c){ c.remove(); });
+  tempExcludeWords.forEach(function(w, i){
+    var chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = esc(w)+' <span class="tag-remove" onclick="removeExcludeTag('+i+')">&times;</span>';
+    wrap.insertBefore(chip, input);
+  });
+}
+
+function removeExcludeTag(i) { tempExcludeWords.splice(i, 1); renderExcludeTags(); }
+
+function createProject() {
+  var name = document.getElementById('f_name').value.trim();
+  var date = document.getElementById('f_date').value;
+  var audience = document.getElementById('f_audience').value.trim();
+  var sellingText = document.getElementById('f_selling').value.trim();
+  if (!name) { showToast('请输入产品名称', 'error'); return; }
+  var sellingPoints = sellingText ? sellingText.split('\n').filter(function(l){return l.trim();}).map(function(l){return {id:uid(),text:l.trim()};}) : [];
+  var project = {
+    id: uid(), name: name, launchDate: date, targetAudience: audience,
+    excludeWords: tempExcludeWords.slice(), sellingPoints: sellingPoints, themes: [],
+    createdAt: new Date().toISOString()
+  };
+  state.projects.unshift(project);
+  state.activeProjectId = project.id;
+  tempExcludeWords = [];
+  saveState(); closeModal(); showToast('项目创建成功'); switchTab('archive');
+}
+
+function renderArchive(p) {
+  var container = document.getElementById('archiveContent');
+  if (!p) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><p>点击「+ 新建项目」创建第一个观察项目</p></div>';
+    return;
+  }
+  var oc = (p.themes||[]).reduce(function(s,t){return s+(t.opinions||[]).length;},0);
+  var nc = (p.themes||[]).reduce(function(s,t){return s+(t.opinions||[]).filter(function(o){return o.sentiment==='negative';}).length;},0);
+  var pc = (p.themes||[]).reduce(function(s,t){return s+(t.opinions||[]).filter(function(o){return o.sentiment==='positive';}).length;},0);
+  var spHtml = (p.sellingPoints||[]).map(function(sp,i){
+    return '<div class="selling-point-item"><span style="color:var(--accent);font-weight:600;">'+(i+1)+'.</span><span class="sp-text">'+esc(sp.text)+'</span><button class="sp-remove" onclick="removeSellingPoint(\''+sp.id+'\')">&times;</button></div>';
+  }).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:8px;">暂未设置卖点</div>';
+  var ewHtml = (p.excludeWords||[]).map(function(w){return '<span class="tag-chip">'+esc(w)+'</span>';}).join('') || '<span style="color:var(--text-muted);font-size:13px;">暂未设置</span>';
+  container.innerHTML =
+    '<div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'+esc(p.name)+' — 项目档案</div>'+
+    '<div class="project-info-bar">'+
+    '<div class="info-item"><span class="info-label">产品名称：</span><span class="info-value">'+esc(p.name)+'</span></div>'+
+    '<div class="info-item"><span class="info-label">上线日期：</span><span class="info-value">'+(p.launchDate||'—')+'</span></div>'+
+    '<div class="info-item"><span class="info-label">目标人群：</span><span class="info-value">'+(esc(p.targetAudience)||'—')+'</span></div>'+
+    '<div class="info-item"><span class="info-label">观点数：</span><span class="info-value">'+oc+'</span></div>'+
+    '<div class="info-item"><span class="info-label">正面：</span><span class="info-value" style="color:var(--green)">'+pc+'</span></div>'+
+    '<div class="info-item"><span class="info-label">负面：</span><span class="info-value" style="color:var(--red)">'+nc+'</span></div>'+
+    '</div>'+
+    '<div class="card"><div class="card-header"><div class="card-title">预期卖点</div><button class="btn btn-sm btn-secondary" onclick="addSellingPoint()">+ 添加卖点</button></div><div>'+spHtml+'</div></div>'+
+    '<div class="card"><div class="card-header"><div class="card-title">排除无关词</div><button class="btn btn-sm btn-secondary" onclick="editExcludeWords()">编辑</button></div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+ewHtml+'</div></div>'+
+    '<div class="card"><div class="card-header"><div class="card-title">操作</div></div><div style="display:flex;gap:8px;"><button class="btn btn-danger btn-sm" onclick="deleteProject(\''+p.id+'\')">删除项目</button></div></div>';
+}
+
+function addSellingPoint() {
+  openModal(
+    '<div class="modal-header"><div class="modal-title">添加预期卖点</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-group"><label>卖点内容</label><input class="form-input" id="f_sp_text" placeholder="如：全新开放世界地图"></div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveSellingPoint()">添加</button></div>'
+  );
+}
+
+function saveSellingPoint() {
+  var text = document.getElementById('f_sp_text').value.trim();
+  if (!text) return;
+  var p = getActiveProject(); if (!p) return;
+  p.sellingPoints = p.sellingPoints || [];
+  p.sellingPoints.push({id:uid(),text:text});
+  saveState(); closeModal(); showToast('卖点已添加'); renderArchive(p);
+}
+
+function removeSellingPoint(spId) {
+  var p = getActiveProject(); if (!p) return;
+  p.sellingPoints = (p.sellingPoints||[]).filter(function(sp){return sp.id!==spId;});
+  saveState(); renderArchive(p);
+}
+
+function editExcludeWords() {
+  var p = getActiveProject(); if (!p) return;
+  tempExcludeWords = (p.excludeWords||[]).slice();
+  openModal(
+    '<div class="modal-header"><div class="modal-title">编辑排除无关词</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-group"><label>排除无关词（回车添加）</label><div class="tag-input-wrap" id="excludeTagWrap" onclick="document.getElementById(\'f_exclude\').focus()"><input id="f_exclude" placeholder="输入后按回车" onkeydown="handleExcludeTag(event)"></div></div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveExcludeWords()">保存</button></div>'
+  );
+  renderExcludeTags();
+}
+
+function saveExcludeWords() {
+  var p = getActiveProject(); if (!p) return;
+  p.excludeWords = tempExcludeWords.slice();
+  tempExcludeWords = [];
+  saveState(); closeModal(); showToast('无关词已更新'); renderArchive(p);
+}
+
+function deleteProject(id) {
+  if (!confirm('确定删除此项目？所有数据将无法恢复。')) return;
+  state.projects = state.projects.filter(function(p){return p.id!==id;});
+  if (state.activeProjectId === id) state.activeProjectId = state.projects.length > 0 ? state.projects[0].id : null;
+  saveState(); showToast('项目已删除'); renderCurrentView();
+}
+
+function renderOpinions(p) {
+  var container = document.getElementById('opinionsContent');
+  if (!p) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><p>请先选择一个项目</p></div>';
+    return;
+  }
+  var unassigned = (p.themes||[]).filter(function(t){return t.name==='__unassigned__';});
+  var unassignedOps = unassigned.length > 0 ? unassigned[0].opinions : [];
+  var themes = (p.themes||[]).filter(function(t){return t.name!=='__unassigned__';});
+
+  var html = '<div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>观点摘录 — '+esc(p.name)+'</div>'+
+    '<div class="toolbar"><button class="btn btn-primary" onclick="openAddOpinionModal()">+ 添加观点</button><button class="btn btn-secondary" onclick="addTheme()">+ 新增主题</button><span class="spacer"></span><span style="font-size:12px;color:var(--text-muted);">拖拽卡片到对应主题进行分类</span></div>';
+
+  if (unassignedOps.length > 0) {
+    html += '<div style="margin-bottom:12px;font-size:12px;color:var(--text-muted);font-weight:600;">未分类观点</div>'+
+      '<div class="unassigned-area scrollbar" id="unassignedDropZone" ondragover="handleDragOver(event)" ondrop="handleDropUnassigned(event)" ondragleave="handleDragLeave(event)">'+
+      unassignedOps.map(function(o){return renderOpinionCard(o,'__unassigned__');}).join('')+'</div>';
+  }
+
+  html += '<div class="opinion-board scrollbar" id="opinionBoard">';
+  themes.forEach(function(t,ti){
+    html += '<div class="theme-column"><div class="theme-column-header"><div class="theme-column-name"><span class="theme-dot" style="background:'+(t.color||THEME_COLORS[ti%THEME_COLORS.length])+'"></span>'+esc(t.name)+'</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;"><span class="theme-column-count">'+(t.opinions||[]).length+' 条</span><button class="btn-icon btn-sm" onclick="deleteTheme(\''+t.id+'\')" title="删除主题">&times;</button></div></div>'+
+      '<div class="theme-column-body scrollbar" data-theme-id="'+t.id+'" ondragover="handleDragOver(event)" ondrop="handleDropTheme(event,\''+t.id+'\')" ondragleave="handleDragLeave(event)">'+
+      (t.opinions||[]).map(function(o){return renderOpinionCard(o,t.id);}).join('')+'</div></div>';
+  });
+  html += '<div class="add-theme-col" onclick="addTheme()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增主题</div></div>';
+  container.innerHTML = html;
+}
+
+function renderOpinionCard(o, themeId) {
+  var sc = 'sentiment-' + o.sentiment;
+  var st = SENTIMENT_MAP[o.sentiment] || '中性';
+  var sl = o.sourceUrl ? ' <a href="'+esc(o.sourceUrl)+'" target="_blank" style="color:var(--accent);text-decoration:none;">原帖</a>' : '';
+  return '<div class="opinion-card" draggable="true" data-opinion-id="'+o.id+'" data-theme-id="'+themeId+'" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">'+
+    '<div class="opinion-card-content">'+esc(o.content)+'</div>'+
+    '<div class="opinion-card-footer"><span class="'+sc+'">'+st+'</span><span>📊 频次:'+(o.frequency||1)+'</span><span>👍 '+(o.likes||0)+'</span>'+sl+
+    '<div class="opinion-card-actions"><button onclick="openEditOpinionModal(\''+o.id+'\',\''+themeId+'\')" title="编辑">✏️</button><button onclick="deleteOpinion(\''+o.id+'\',\''+themeId+'\')" title="删除">🗑</button></div></div></div>';
+}
+
+function handleDragStart(e) {
+  var card = e.target.closest('.opinion-card');
+  if (!card) return;
+  dragData = {opinionId: card.dataset.opinionId, fromThemeId: card.dataset.themeId};
+  card.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', card.dataset.opinionId);
+}
+
+function handleDragEnd() {
+  document.querySelectorAll('.opinion-card.dragging').forEach(function(c){c.classList.remove('dragging');});
+  document.querySelectorAll('.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  dragData = null;
+}
+
+function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
+function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function handleDropTheme(e, targetThemeId) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if (!dragData) return;
+  moveOpinion(dragData.opinionId, dragData.fromThemeId, targetThemeId);
+}
+
+function handleDropUnassigned(e) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if (!dragData) return;
+  var p = getActiveProject(); if (!p) return;
+  var unassigned = p.themes.find(function(t){return t.name==='__unassigned__';});
+  if (!unassigned) { unassigned = {id:uid(),name:'__unassigned__',color:'#666',opinions:[]}; p.themes.push(unassigned); }
+  var fromTheme = p.themes.find(function(t){return t.id===dragData.fromThemeId;});
+  if (!fromTheme) return;
+  var idx = fromTheme.opinions.findIndex(function(o){return o.id===dragData.opinionId;});
+  if (idx === -1) return;
+  var opinion = fromTheme.opinions.splice(idx, 1)[0];
+  unassigned.opinions.push(opinion);
+  saveState(); renderOpinions(p);
+}
+
+function moveOpinion(opinionId, fromThemeId, toThemeId) {
+  var p = getActiveProject(); if (!p) return;
+  var fromTheme = p.themes.find(function(t){return t.id===fromThemeId;});
+  var toTheme = p.themes.find(function(t){return t.id===toThemeId;});
+  if (!fromTheme || !toTheme) return;
+  var idx = fromTheme.opinions.findIndex(function(o){return o.id===opinionId;});
+  if (idx === -1) return;
+  var opinion = fromTheme.opinions.splice(idx, 1)[0];
+  toTheme.opinions.push(opinion);
+  saveState(); renderOpinions(p);
+}
+
+function addTheme() {
+  openModal(
+    '<div class="modal-header"><div class="modal-title">新增主题</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-group"><label>主题名称</label><input class="form-input" id="f_theme_name" placeholder="如：玩法体验、价格感受、宣传争议"></div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTheme()">添加</button></div>'
+  );
+}
+
+function saveTheme() {
+  var name = document.getElementById('f_theme_name').value.trim();
+  if (!name) return;
+  var p = getActiveProject(); if (!p) return;
+  p.themes = p.themes || [];
+  var ci = p.themes.filter(function(t){return t.name!=='__unassigned__';}).length;
+  p.themes.push({id:uid(),name:name,color:THEME_COLORS[ci%THEME_COLORS.length],opinions:[]});
+  saveState(); closeModal(); showToast('主题已添加'); renderOpinions(p);
+}
+
+function deleteTheme(themeId) {
+  var p = getActiveProject(); if (!p) return;
+  var theme = p.themes.find(function(t){return t.id===themeId;});
+  if (!theme) return;
+  if (theme.opinions && theme.opinions.length > 0) {
+    if (!confirm('主题「'+theme.name+'」下还有 '+theme.opinions.length+' 条观点，删除后观点将移至未分类。继续？')) return;
+    var unassigned = p.themes.find(function(t){return t.name==='__unassigned__';});
+    if (!unassigned) { unassigned = {id:uid(),name:'__unassigned__',color:'#666',opinions:[]}; p.themes.push(unassigned); }
+    unassigned.opinions = unassigned.opinions.concat(theme.opinions);
+  }
+  p.themes = p.themes.filter(function(t){return t.id!==themeId;});
+  saveState(); renderOpinions(p);
+}
+
+function openAddOpinionModal() {
+  var p = getActiveProject(); if (!p) return;
+  var themes = (p.themes||[]).filter(function(t){return t.name!=='__unassigned__';});
+  var to = themes.map(function(t){return '<option value="'+t.id+'">'+esc(t.name)+'</option>';}).join('');
+  openModal(
+    '<div class="modal-header"><div class="modal-title">添加观点</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-grid">'+
+    '<div class="form-group full"><label>观点内容</label><textarea class="form-textarea" id="f_op_content" placeholder="如：玩法太肝了，每天要刷4小时日常" rows="3"></textarea></div>'+
+    '<div class="form-group"><label>情感倾向</label><select class="form-select" id="f_op_sentiment"><option value="neutral">中性</option><option value="positive">正面</option><option value="negative">负面</option></select></div>'+
+    '<div class="form-group"><label>所属主题</label><select class="form-select" id="f_op_theme"><option value="">未分类</option>'+to+'</select></div>'+
+    '<div class="form-group"><label>出现频次</label><input class="form-input" id="f_op_freq" type="number" min="1" value="1"></div>'+
+    '<div class="form-group"><label>点赞数</label><input class="form-input" id="f_op_likes" type="number" min="0" value="0"></div>'+
+    '<div class="form-group full"><label>代表性原帖链接</label><input class="form-input" id="f_op_source" placeholder="https://..."></div>'+
+    '</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveOpinion()">添加</button></div>'
+  );
+}
+
+function saveOpinion() {
+  var p = getActiveProject(); if (!p) return;
+  var content = document.getElementById('f_op_content').value.trim();
+  if (!content) { showToast('请输入观点内容','error'); return; }
+  var opinion = {
+    id: uid(), content: content,
+    sentiment: document.getElementById('f_op_sentiment').value,
+    frequency: parseInt(document.getElementById('f_op_freq').value) || 1,
+    likes: parseInt(document.getElementById('f_op_likes').value) || 0,
+    sourceUrl: document.getElementById('f_op_source').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  var themeId = document.getElementById('f_op_theme').value;
+  p.themes = p.themes || [];
+  if (themeId) {
+    var theme = p.themes.find(function(t){return t.id===themeId;});
+    if (theme) theme.opinions.push(opinion);
+  } else {
+    var unassigned = p.themes.find(function(t){return t.name==='__unassigned__';});
+    if (!unassigned) { unassigned = {id:uid(),name:'__unassigned__',color:'#666',opinions:[]}; p.themes.push(unassigned); }
+    unassigned.opinions.push(opinion);
+  }
+  saveState(); closeModal(); showToast('观点已添加'); renderOpinions(p);
+}
+
+function openEditOpinionModal(opinionId, themeId) {
+  var p = getActiveProject(); if (!p) return;
+  var theme = p.themes.find(function(t){return t.id===themeId;}); if (!theme) return;
+  var opinion = theme.opinions.find(function(o){return o.id===opinionId;}); if (!opinion) return;
+  var themes = (p.themes||[]).filter(function(t){return t.name!=='__unassigned__';});
+  var to = themes.map(function(t){return '<option value="'+t.id+'"'+(t.id===themeId?' selected':'')+'>'+esc(t.name)+'</option>';}).join('');
+  var selHtml = '<option value="neutral"'+(opinion.sentiment==='neutral'?' selected':'')+'>中性</option>'+
+    '<option value="positive"'+(opinion.sentiment==='positive'?' selected':'')+'>正面</option>'+
+    '<option value="negative"'+(opinion.sentiment==='negative'?' selected':'')+'>负面</option>';
+  openModal(
+    '<div class="modal-header"><div class="modal-title">编辑观点</div><button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+    '<div class="modal-body"><div class="form-grid">'+
+    '<div class="form-group full"><label>观点内容</label><textarea class="form-textarea" id="f_op_content" rows="3">'+esc(opinion.content)+'</textarea></div>'+
+    '<div class="form-group"><label>情感倾向</label><select class="form-select" id="f_op_sentiment">'+selHtml+'</select></div>'+
+    '<div class="form-group"><label>所属主题</label><select class="form-select" id="f_op_theme"><option value="">未分类</option>'+to+'</select></div>'+
+    '<div class="form-group"><label>出现频次</label><input class="form-input" id="f_op_freq" type="number" min="1" value="'+(opinion.frequency||1)+'"></div>'+
+    '<div class="form-group"><label>点赞数</label><input class="form-input" id="f_op_likes" type="number" min="0" value="'+(opinion.likes||0)+'"></div>'+
+    '<div class="form-group full"><label>代表性原帖链接</label><input class="form-input" id="f_op_source" value="'+esc(opinion.sourceUrl||'')+'"></div>'+
+    '</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateOpinion(\''+opinionId+'\',\''+themeId+'\')">保存</button></div>'
+  );
+}
+
+function updateOpinion(opinionId, oldThemeId) {
+  var p = getActiveProject(); if (!p) return;
+  var oldTheme = p.themes.find(function(t){return t.id===oldThemeId;}); if (!oldTheme) return;
+  var idx = oldTheme.opinions.findIndex(function(o){return o.id===opinionId;}); if (idx===-1) return;
+  var opinion = oldTheme.opinions[idx];
+  opinion.content = document.getElementById('f_op_content').value.trim();
+  opinion.sentiment = document.getElementById('f_op_sentiment').value;
+  opinion.frequency = parseInt(document.getElementById('f_op_freq').value) || 1;
+  opinion.likes = parseInt(document.getElementById('f_op_likes').value) || 0;
+  opinion.sourceUrl = document.getElementById('f_op_source').value.trim();
+  var newThemeId = document.getElementById('f_op_theme').value;
+  if (newThemeId && newThemeId !== oldThemeId) {
+    oldTheme.opinions.splice(idx, 1);
+    var newTheme = p.themes.find(function(t){return t.id===newThemeId;});
+    if (newTheme) newTheme.opinions.push(opinion);
+  } else if (!newThemeId && oldThemeId) {
+    oldTheme.opinions.splice(idx, 1);
+    var unassigned = p.themes.find(function(t){return t.name==='__unassigned__';});
+    if (!unassigned) { unassigned = {id:uid(),name:'__unassigned__',color:'#666',opinions:[]}; p.themes.push(unassigned); }
+    unassigned.opinions.push(opinion);
+  }
+  saveState(); closeModal(); showToast('观点已更新'); renderOpinions(p);
+}
+
+function deleteOpinion(opinionId, themeId) {
+  var p = getActiveProject(); if (!p) return;
+  var theme = p.themes.find(function(t){return t.id===themeId;}); if (!theme) return;
+  theme.opinions = theme.opinions.filter(function(o){return o.id!==opinionId;});
+  saveState(); renderOpinions(p);
+}
+
+function renderCompare(p) {
+  var container = document.getElementById('compareContent');
+  if (!p) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg><p>请先选择一个项目并录入观点数据</p></div>';
+    return;
+  }
+  var sellingPoints = p.sellingPoints || [];
+  var themes = (p.themes||[]).filter(function(t){return t.name!=='__unassigned__';});
+  var allOpinions = [];
+  themes.forEach(function(t){
+    (t.opinions||[]).forEach(function(o){
+      allOpinions.push({content:o.content,sentiment:o.sentiment,frequency:o.frequency,likes:o.likes,themeName:t.name,themeColor:t.color,sourceUrl:o.sourceUrl});
+    });
+  });
+
+  var matched = [];
+  var missed = [];
+  sellingPoints.forEach(function(sp){
+    var kw = sp.text.toLowerCase();
+    var related = allOpinions.filter(function(o){return o.content.toLowerCase().indexOf(kw)!==-1 || o.themeName.toLowerCase().indexOf(kw)!==-1;});
+    if (related.length > 0) matched.push({sellingPoint:sp.text,opinions:related,totalFreq:related.reduce(function(s,o){return s+(o.frequency||1);},0)});
+    else missed.push({sellingPoint:sp.text});
+  });
+
+  var unexpectedNegatives = allOpinions.filter(function(o){return o.sentiment==='negative';}).sort(function(a,b){return (b.frequency||1)-(a.frequency||1);}).slice(0,10);
+  var hotThemes = themes.map(function(t){
+    return {name:t.name,color:t.color,count:(t.opinions||[]).length,totalFreq:(t.opinions||[]).reduce(function(s,o){return s+(o.frequency||1);},0),
+      negCount:(t.opinions||[]).filter(function(o){return o.sentiment==='negative';}).length,
+      posCount:(t.opinions||[]).filter(function(o){return o.sentiment==='positive';}).length};
+  }).sort(function(a,b){return b.totalFreq-a.totalFreq;});
+
+  var spListHtml = sellingPoints.length===0
+    ? '<div style="color:var(--text-muted);font-size:13px;">暂未设置卖点，请在项目档案中添加</div>'
+    : sellingPoints.map(function(sp){
+      var isMatched = matched.some(function(m){return m.sellingPoint===sp.text;});
+      var isMissed = missed.some(function(m){return m.sellingPoint===sp.text;});
+      var cls = isMatched?'matched':isMissed?'missed':'neutral';
+      var icon = isMatched?'✅':isMissed?'⚠️':'●';
+      var badge = isMatched?'<span class="badge badge-green">已讨论</span>':isMissed?'<span class="badge badge-orange">未被提及</span>':'';
+      return '<div class="compare-item '+cls+'"><span class="compare-item-icon">'+icon+'</span><span class="compare-item-text">'+esc(sp.text)+'</span>'+badge+'</div>';
+    }).join('');
+
+  var hotListHtml = hotThemes.length===0
+    ? '<div style="color:var(--text-muted);font-size:13px;">暂无观点数据</div>'
+    : hotThemes.map(function(t){
+      var cls = t.negCount>t.posCount?'unexpected':'matched';
+      var badge = t.negCount>t.posCount?'<span class="badge badge-red">负面为主</span>':'<span class="badge badge-green">正面为主</span>';
+      return '<div class="compare-item '+cls+'"><span class="theme-dot" style="background:'+t.color+'"></span><span class="compare-item-text">'+esc(t.name)+'</span><span class="compare-item-meta">频次'+t.totalFreq+' · '+t.count+'条</span>'+badge+'</div>';
+    }).join('');
+
+  var negListHtml = unexpectedNegatives.length===0
+    ? '<div style="color:var(--text-muted);font-size:13px;padding:8px;">暂无负面意外数据</div>'
+    : unexpectedNegatives.map(function(o){
+      return '<div class="compare-item unexpected" style="margin-bottom:4px;"><span class="compare-item-icon">🔴</span><span class="compare-item-text">'+esc(o.content)+'</span><span class="compare-item-meta">'+esc(o.themeName)+' · 频次'+(o.frequency||1)+' · 👍'+(o.likes||0)+'</span></div>';
+    }).join('');
+
+  var missedListHtml = missed.length===0
+    ? '<div style="color:var(--green);font-size:13px;padding:8px;">所有宣传卖点均有用户讨论 👍</div>'
+    : missed.map(function(m){
+      return '<div class="compare-item missed" style="margin-bottom:4px;"><span class="compare-item-icon">⚠️</span><span class="compare-item-text">'+esc(m.sellingPoint)+'</span><span class="badge badge-orange">零讨论</span></div>';
+    }).join('');
+
+  container.innerHTML =
+    '<div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>对比复盘 — '+esc(p.name)+'</div>'+
+    '<div class="insight-bar">'+
+    '<div class="insight-stat"><div class="insight-stat-value" style="color:var(--green)">'+matched.length+'</div><div class="insight-stat-label">宣传点被讨论</div></div>'+
+    '<div class="insight-stat"><div class="insight-stat-value" style="color:var(--orange)">'+missed.length+'</div><div class="insight-stat-label">宣传点未被提及</div></div>'+
+    '<div class="insight-stat"><div class="insight-stat-value" style="color:var(--red)">'+unexpectedNegatives.length+'</div><div class="insight-stat-label">负面意外扩散</div></div>'+
+    '<div class="insight-stat"><div class="insight-stat-value">'+allOpinions.length+'</div><div class="insight-stat-label">总观点数</div></div>'+
+    '</div>'+
+    '<div class="match-legend"><span><span class="legend-dot green"></span> 宣传点已讨论</span><span><span class="legend-dot orange"></span> 宣传点未被提及</span><span><span class="legend-dot red"></span> 负面意外扩散</span></div>'+
+    '<div class="compare-grid">'+
+    '<div class="compare-panel"><div class="compare-panel-header"><span style="color:var(--accent)">📢</span> 上市前预期卖点</div><div class="compare-panel-body">'+spListHtml+'</div></div>'+
+    '<div class="compare-panel"><div class="compare-panel-header"><span style="color:var(--red)">🔥</span> 真实讨论热点</div><div class="compare-panel-body">'+hotListHtml+'</div></div>'+
+    '</div>'+
+    '<div class="card" style="margin-top:20px;"><div class="card-header"><div class="card-title">⚠️ 负面意外扩散</div><span class="badge badge-red">'+unexpectedNegatives.length+' 条</span></div><div style="max-height:300px;overflow-y:auto;" class="scrollbar">'+negListHtml+'</div></div>'+
+    '<div class="card" style="margin-top:16px;"><div class="card-header"><div class="card-title">📢 宣传点未被提及</div><span class="badge badge-orange">'+missed.length+' 项</span></div><div>'+missedListHtml+'</div></div>';
+}
+
+function renderBrief(p) {
+  var container = document.getElementById('briefContent');
+  if (!p) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg><p>请先完成观点摘录和对比复盘</p></div>';
+    return;
+  }
+
+  var sellingPoints = p.sellingPoints || [];
+  var themes = (p.themes||[]).filter(function(t){return t.name!=='__unassigned__';});
+  var allOpinions = [];
+  themes.forEach(function(t){
+    (t.opinions||[]).forEach(function(o){
+      allOpinions.push({content:o.content,sentiment:o.sentiment,frequency:o.frequency,likes:o.likes,themeName:t.name,sourceUrl:o.sourceUrl});
+    });
+  });
+
+  var totalOpinions = allOpinions.length;
+  var totalFreq = allOpinions.reduce(function(s,o){return s+(o.frequency||1);},0);
+  var posCount = allOpinions.filter(function(o){return o.sentiment==='positive';}).length;
+  var negCount = allOpinions.filter(function(o){return o.sentiment==='negative';}).length;
+  var neuCount = allOpinions.filter(function(o){return o.sentiment==='neutral';}).length;
+
+  var matched = [];
+  var missed = [];
+  sellingPoints.forEach(function(sp){
+    var kw = sp.text.toLowerCase();
+    var related = allOpinions.filter(function(o){return o.content.toLowerCase().indexOf(kw)!==-1 || o.themeName.toLowerCase().indexOf(kw)!==-1;});
+    if (related.length > 0) matched.push(sp.text);
+    else missed.push(sp.text);
+  });
+
+  var topNegatives = allOpinions.filter(function(o){return o.sentiment==='negative';}).sort(function(a,b){return (b.frequency||1)-(a.frequency||1);}).slice(0,5);
+  var topPositives = allOpinions.filter(function(o){return o.sentiment==='positive';}).sort(function(a,b){return (b.frequency||1)-(a.frequency||1);}).slice(0,5);
+
+  var today = new Date();
+  var dateStr = today.getFullYear()+'-'+(today.getMonth()+1).toString().padStart(2,'0')+'-'+today.getDate().toString().padStart(2,'0');
+
+  var themeRows = themes.map(function(t){
+    var ops = t.opinions || [];
+    var tf = ops.reduce(function(s,o){return s+(o.frequency||1);},0);
+    var nc = ops.filter(function(o){return o.sentiment==='negative';}).length;
+    var pc = ops.filter(function(o){return o.sentiment==='positive';}).length;
+    var dominant = nc > pc ? '<span class="brief-tag red">负面为主</span>' : pc > nc ? '<span class="brief-tag green">正面为主</span>' : '<span class="brief-tag orange">混合</span>';
+    return '<tr><td>'+esc(t.name)+'</td><td>'+ops.length+'</td><td>'+tf+'</td><td>'+pc+'</td><td>'+nc+'</td><td>'+dominant+'</td></tr>';
+  }).join('');
+
+  var spRows = sellingPoints.map(function(sp){
+    var isMatched = matched.indexOf(sp.text) !== -1;
+    return '<tr><td>'+esc(sp.text)+'</td><td>'+(isMatched ? '<span class="brief-tag green">✓ 已讨论</span>' : '<span class="brief-tag orange">✗ 未被提及</span>')+'</td></tr>';
+  }).join('');
+
+  var negRows = topNegatives.map(function(o){
+    return '<tr><td>'+esc(o.content)+'</td><td>'+esc(o.themeName)+'</td><td>'+(o.frequency||1)+'</td><td>'+(o.likes||0)+'</td></tr>';
+  }).join('');
+
+  var posRows = topPositives.map(function(o){
+    return '<tr><td>'+esc(o.content)+'</td><td>'+esc(o.themeName)+'</td><td>'+(o.frequency||1)+'</td><td>'+(o.likes||0)+'</td></tr>';
+  }).join('');
+
+  container.innerHTML =
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px;">'+
+    '<button class="btn btn-secondary" onclick="window.print()">🖨️ 打印简报</button></div>'+
+    '<div class="brief-container">'+
+    '<h1>口碑复盘简报：'+esc(p.name)+'</h1>'+
+    '<p style="color:#888;font-size:13px;margin-bottom:16px;">产品上线日期：'+(p.launchDate||'—')+' ｜ 目标人群：'+(esc(p.targetAudience)||'—')+' ｜ 简报生成日期：'+dateStr+'</p>'+
+    '<div class="brief-stat-row">'+
+    '<div class="brief-stat-box"><div class="val">'+totalOpinions+'</div><div class="lbl">观点总数</div></div>'+
+    '<div class="brief-stat-box"><div class="val">'+totalFreq+'</div><div class="lbl">累计频次</div></div>'+
+    '<div class="brief-stat-box"><div class="val" style="color:#4caf7d">'+posCount+'</div><div class="lbl">正面观点</div></div>'+
+    '<div class="brief-stat-box"><div class="val" style="color:#e05555">'+negCount+'</div><div class="lbl">负面观点</div></div>'+
+    '<div class="brief-stat-box"><div class="val" style="color:#888">'+neuCount+'</div><div class="lbl">中性观点</div></div>'+
+    '<div class="brief-stat-box"><div class="val" style="color:#4caf7d">'+matched.length+'</div><div class="lbl">宣传点命中</div></div>'+
+    '<div class="brief-stat-box"><div class="val" style="color:#e0a030">'+missed.length+'</div><div class="lbl">宣传点遗漏</div></div>'+
+    '</div>'+
+    '<h2>一、主题分布概览</h2>'+
+    (themeRows ? '<table><thead><tr><th>主题</th><th>观点数</th><th>累计频次</th><th>正面</th><th>负面</th><th>倾向</th></tr></thead><tbody>'+themeRows+'</tbody></table>' : '<p style="color:#888;font-size:13px;">暂无主题数据</p>')+
+    '<h2>二、宣传卖点命中情况</h2>'+
+    (spRows ? '<table><thead><tr><th>预期卖点</th><th>用户讨论情况</th></tr></thead><tbody>'+spRows+'</tbody></table>' : '<p style="color:#888;font-size:13px;">暂未设置预期卖点</p>')+
+    (missed.length > 0 ? '<p style="color:#e65100;font-size:13px;font-weight:600;">⚠️ 未被用户提及的宣传点：'+missed.map(function(m){return '「'+esc(m)+'」';}).join('、')+'</p>' : '')+
+    '<h2>三、负面意外扩散 TOP5</h2>'+
+    (negRows ? '<table><thead><tr><th>观点内容</th><th>主题</th><th>频次</th><th>点赞</th></tr></thead><tbody>'+negRows+'</tbody></table>' : '<p style="color:#888;font-size:13px;">无显著负面意外</p>')+
+    '<h2>四、正面积极反馈 TOP5</h2>'+
+    (posRows ? '<table><thead><tr><th>观点内容</th><th>主题</th><th>频次</th><th>点赞</th></tr></thead><tbody>'+posRows+'</tbody></table>' : '<p style="color:#888;font-size:13px;">无正面反馈数据</p>')+
+    '<h2>五、行动建议</h2>'+
+    '<ul style="font-size:13px;line-height:1.8;padding-left:20px;">'+
+    (missed.length > 0 ? '<li>市场团队：重新评估未被讨论的卖点（'+missed.map(function(m){return '「'+esc(m)+'」';}).join('、')+'），考虑调整宣传策略或内容触达方式。</li>' : '')+
+    (topNegatives.length > 0 ? '<li>产品团队：优先关注负面高频反馈（'+topNegatives.slice(0,3).map(function(o){return '「'+esc(o.content).substring(0,20)+'…」';}).join('、')+'），制定改进方案。</li>' : '')+
+    (topNegatives.length > 0 ? '<li>客服团队：针对高频负面问题准备标准化回应话术，降低投诉升级率。</li>' : '')+
+    (matched.length > 0 ? '<li>运营团队：放大已验证的正面讨论点（'+matched.slice(0,3).map(function(m){return '「'+esc(m)+'」';}).join('、')+'），引导口碑正向传播。</li>' : '')+
+    '</ul>'+
+    '</div>';
+}
+
+loadState();
+renderCurrentView();
+</script>
+</body>
+</html>
